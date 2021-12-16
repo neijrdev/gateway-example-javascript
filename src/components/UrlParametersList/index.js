@@ -53,7 +53,7 @@ const UrlParametersList = (props) => {
   return (
     <Container>
       <ContainerFlexWidth>
-        <SectionTitle>Url Parameters - NeiJrDev</SectionTitle>
+        <SectionTitle>Url Parameters</SectionTitle>
         <ListContainer>
           {Object.entries(parameters).map((param, index) =>
             renderParametersItem(param, index)
