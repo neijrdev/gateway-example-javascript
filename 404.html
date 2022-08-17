@@ -15,14 +15,13 @@
     <div id="root"></div>
   </body>
   <script type="text/javascript">
-   function getPathname() {
-      return window.location.pathname;
-    }
-    console.log(getPathname())
+    const path = window.location.pathname
+    const pathNameReplaced = path.replace(
+        "gateway-example-javascript/",
+        `gateway-example-javascript/#/`
+      )
     const params = new URLSearchParams(window.location.search)
-    console.log("params: " + params)
-    const pathNameReplaced = getPathname().replace(
-      "gateway-example-javascript/", "gateway-example-javascript/#/")
-    window.location.replace(pathNameReplaced)
-  </script>
+    const newUrl = `${pathNameReplaced}?${params}`
+    window.location.replace(newUrl)
+  </script>ø
 </html>
