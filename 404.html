@@ -19,6 +19,8 @@
       return window.location.pathname;
     }
     console.log(getPathname())
+    const params = new URLSearchParams(window.location.search)
+    console.log("params: " + params)
     const pathNameReplaced = getPathname().replace(
       "gateway-example-javascript/", "gateway-example-javascript/#/")
     window.location.replace(pathNameReplaced)
