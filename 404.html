@@ -2,19 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="gateway-example-javascript/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta
       name="Example Gateway React JS"
       content="Example Gateway React JS to assist in the integration with the Paylivre gateway"
     />
-    <link rel="apple-touch-icon" href="gateway-example-javascript/logo_example_merchant.png" />
-    <link rel="manifest" href="gateway-example-javascript/manifest.json" />
     <title>Example Gateway React JS</title>
   </head>
   <body>
     <noscript>Example Gateway React JS to assist in the integration with the Paylivre gateway</noscript>
     <div id="root"></div>
   </body>
+  <script type="text/javascript">
+   function getPathname() {
+      return window.location.pathname;
+    }
+    console.log(getPathname())
+    const pathNameReplaced = getPathname().replace(
+      "gateway-example-javascript/", "gateway-example-javascript/#/")
+    window.location.replace(pathNameReplaced)
+  </script>
 </html>
