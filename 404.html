@@ -21,7 +21,7 @@
     `gateway-example-javascript/#/`
   )
   const params = new URLSearchParams(window.location.search)
-  const paramsUrl = params.toString().length > 0 ? `? ${params}` : ""
+  const paramsUrl = params.toString().length > 0 ? `?${params}` : ""
   const newUrl = `${pathNameReplaced}${paramsUrl}`
   window.location.replace(newUrl)
 </script>
