@@ -95,9 +95,6 @@ function App() {
   const [url, setURL] = React.useState("");
   const [urlGatewayParameters, setUrlGatewayParameters] = React.useState({});
   const typeFormSelected = "json";
-  const [requiredFields, setRequiredFields] = React.useState(
-    requiredFieldsDefault
-  );
 
   function getUrlGateway(DataURL, signature) {
     const merchant_transaction_id = `merchant_transaction_id=${DataURL.merchant_transaction_id}`;
@@ -164,7 +161,6 @@ function App() {
         setData={setData}
         typeFormSelected={typeFormSelected}
         isDev={isDev}
-        setRequiredFields={setRequiredFields}
       />
       <ContainerResult>
         {urlGenerated && (
