@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import FormLabel from "@mui/material/FormLabel";
 import { Typography } from "@mui/material";
@@ -6,7 +6,6 @@ import {
   Container,
   FormLabelCustom,
   ContainerHeight,
-  ContainerCheckTypes,
   ContainerFlexWidthCustom,
 } from "./styles";
 
@@ -14,14 +13,16 @@ import { ContainerRow } from "../styles";
 
 import Input from "../Input";
 import RadioGroup from "../RadioGroup";
-import Checkbox from "../CheckBox";
-import { typesList, getTypeInteger } from "../../utils/typesUtils";
 import { PixKeyTypes } from "../../utils/pixKeyTypes";
 
 import { getRandomMerchantTransactionId } from "../../utils/generatePropsRandom";
 
 import { useForceReloadData } from "../../contexts/forceReloadData";
 import InputSwitch from "../Switch";
+import packageJson from "../../../package.json";
+import { CustomButton } from "../../app/styles";
+import { operation_deposit, operation_withdraw } from "../../data/types";
+import TypesTransaction from "./components/TypesTransaction";
 
 function Form({
   setData,
@@ -35,83 +36,59 @@ function Form({
 }) {
   const logo_url_example =
     "https://github.com/paylivre/gateway-example-react-js/blob/master/assets/logo_jackpot_new.png?raw=true";
-  const operation_deposit = "0";
-  const operation_withdraw = "5";
-  const [merchant_id, setMerchantId] = React.useState(dataDefault.merchant_id);
-  const [merchant_transaction_id, setMerchantTransactionId] = React.useState(
+  const [merchant_id, setMerchantId] = useState(dataDefault.merchant_id);
+  const [merchant_transaction_id, setMerchantTransactionId] = useState(
     getRandomMerchantTransactionId()
   );
-  const [email, setEmail] = React.useState(dataDefault.email);
-  const [document_number, setDocumentNumber] = React.useState(
+  const [email, setEmail] = useState(dataDefault.email);
+  const [document_number, setDocumentNumber] = useState(
     dataDefault.document_number
   );
-  const [account_id, setAccountId] = React.useState("123654asd");
-  const [currency, setCurrency] = React.useState("BRL");
-  const [operation, setOperation] = React.useState(operation_deposit);
-  const [amount, setAmount] = React.useState("500");
-  const [callback_url, setcCallback_url] = React.useState(
-    "https://www.google.com"
+  const [account_id, setAccountId] = useState("123654asd");
+  const [currency, setCurrency] = useState("BRL");
+  const [operation, setOperation] = useState(operation_deposit);
+  const [amount, setAmount] = useState("500");
+  const [callback_url, setcCallback_url] = useState(
+    "https://api.dev.paylivre.com/dev/v2/callback"
   );
-  const [redirect_url, setRedirect_url] = React.useState(
+  const [redirect_url, setRedirect_url] = useState(
     "https://www.merchant_to_you.com"
   );
-  const [typesCheckeds, setTypesCheckeds] = React.useState({
-    [typesList.WIRETRANFER]: false,
-    [typesList.BILLET]: false,
-    [typesList.PIX]: true,
-    [typesList.WALLET]: false,
-  });
-  const [type, setType] = React.useState("1");
-  const [selected_type, setSelected_type] = React.useState("4");
-  const [checkDataSelectedType, setCheckDataSelectedType] = React.useState([]);
-  const [pix_key_type, setPix_key_type] = React.useState(PixKeyTypes.document);
-  const [pix_key, setPix_key] = React.useState(dataDefault.document_number);
-  const [login_email, setLoginEmail] = React.useState(dataDefault.email);
-  const [password, setPassword] = React.useState("123123123");
-  const [logo_url, setLogoUrl] = React.useState(logo_url_example);
-  const [auto_approve, setAuto_approve] = React.useState("1");
-
+  const [type, setType] = useState("1");
+  const [selected_type, setSelected_type] = useState("1");
+  const [checkDataSelectedType, setCheckDataSelectedType] = useState([]);
+  const [pix_key_type, setPix_key_type] = useState("");
+  const [pix_key, setPix_key] = useState("");
+  const [login_email, setLoginEmail] = useState(dataDefault.email);
+  const [password, setPassword] = useState("123123123");
+  const [logo_url, setLogoUrl] = useState(logo_url_example);
+  const [auto_approve, setAuto_approve] = useState(true);
   const { disable, setDisable } = useForceReloadData();
 
-  function setTypesChecked(typeKey, isChecked) {
-    const newTypesCheckeds = { ...typesCheckeds, [typeKey]: isChecked };
-    setTypesCheckeds(newTypesCheckeds);
-    const newType = getTypeInteger(newTypesCheckeds);
-    setType(newType);
+  function checkIsTypeWithdrawValid(Type) {
+    switch (Type) {
+      case "1": {
+        return true;
+      }
+      case "9": {
+        return true;
+      }
+      default: {
+        return false;
+      }
+    }
   }
 
-  useEffect(() => {
-    function enableCheckDataSelectedType() {
-      const newCheckDataSelectedType = [];
-      if (typesCheckeds[4]) {
-        newCheckDataSelectedType.push({
-          value: typesList.PIX.toString(),
-          label: "Pix",
-        });
-      }
-      if (typesCheckeds[1]) {
-        newCheckDataSelectedType.push({
-          value: typesList.BILLET.toString(),
-          label: "Billet",
-        });
-      }
-      if (typesCheckeds[0]) {
-        newCheckDataSelectedType.push({
-          value: typesList.WIRETRANFER.toString(),
-          label: "Wire Transfer",
-        });
-      }
-      if (typesCheckeds[5]) {
-        newCheckDataSelectedType.push({
-          value: typesList.WALLET.toString(),
-          label: "Paylivre Wallet",
-        });
-      }
+  function handleCleanPixKeyData() {
+    setPix_key_type("");
+    setPix_key("");
+  }
 
-      setCheckDataSelectedType(newCheckDataSelectedType);
+  function showingAndSetPixKeyDefault() {
+    if (!checkIsTypeWithdrawValid(type)) {
+      handleCleanPixKeyData();
     }
-    enableCheckDataSelectedType();
-  }, [typesCheckeds]);
+  }
 
   const isDepositWallet =
     typeFormSelected === "json" &&
@@ -126,16 +103,6 @@ function Form({
     const isWithdraw = operation === operation_withdraw;
 
     function getType() {
-      if (operation === operation_withdraw) {
-        const typeNumber = Number(type);
-        if (Number.isNaN(typeNumber)) {
-          return "0";
-        }
-        if (typeNumber > 1) {
-          return "1";
-        }
-        return type;
-      }
       return type;
     }
 
@@ -144,7 +111,7 @@ function Form({
         ...oldData,
         account_id,
         amount,
-        auto_approve,
+        auto_approve: auto_approve === true ? "1" : "0",
         callback_url,
         currency,
         document_number,
@@ -191,7 +158,7 @@ function Form({
   }
 
   function isAutoApproveSelected() {
-    return auto_approve ? (
+    return auto_approve === true ? (
       <Typography component="span" color="primary">
         true
       </Typography>
@@ -200,6 +167,23 @@ function Form({
         false
       </Typography>
     );
+  }
+
+  function handleSetPixKey(string_value) {
+    if (string_value === PixKeyTypes.document) {
+      setPix_key_type(PixKeyTypes.document);
+      setPix_key(document_number);
+    }
+
+    if (string_value === PixKeyTypes.email) {
+      setPix_key_type(PixKeyTypes.email);
+      setPix_key(email);
+    }
+
+    if (string_value === PixKeyTypes.phone) {
+      setPix_key_type(PixKeyTypes.phone);
+      setPix_key("");
+    }
   }
 
   return (
@@ -243,14 +227,12 @@ function Form({
           />
         </ContainerFlexWidthCustom>
       </ContainerRow>
-
       <ContainerHeight height={5} />
       <Input
         value={gateway_token}
         setValue={(value) => setGateway_token(value)}
         label="Gateway Token:"
       />
-
       <FormLabelCustom>User Data:</FormLabelCustom>
       <Input
         value={email}
@@ -275,7 +257,6 @@ function Form({
           />
         </ContainerFlexWidthCustom>
       </ContainerRow>
-
       <FormLabelCustom>Transaction Data:</FormLabelCustom>
       <ContainerRow>
         <ContainerFlexWidthCustom widthPercent={50}>
@@ -290,7 +271,7 @@ function Form({
           <InputSwitch
             label="Auto approve"
             checked={auto_approve}
-            onChange={(event) => setAuto_approve(event.target.checked ? 1 : 0)}
+            onChange={(event) => setAuto_approve(event.target.checked)}
           />
           {isAutoApproveSelected()}
         </ContainerFlexWidthCustom>
@@ -306,7 +287,6 @@ function Form({
           />
         </ContainerFlexWidthCustom>
       </ContainerRow>
-
       <ContainerHeight height={15} />
       <RadioGroup
         defaultCheckedValue={operation}
@@ -319,38 +299,14 @@ function Form({
       />
       <ContainerHeight height={15} />
       <FormLabel component="legend">Type passed by merchant</FormLabel>
-      <ContainerCheckTypes>
-        <Checkbox
-          label="PIX"
-          isChecked={typesCheckeds[typesList.PIX]}
-          setChecked={(isChecked) => setTypesChecked(typesList.PIX, isChecked)}
-        />
-        {operation === operation_deposit && (
-          <>
-            <Checkbox
-              label="Billet"
-              isChecked={typesCheckeds[typesList.BILLET]}
-              setChecked={(isChecked) =>
-                setTypesChecked(typesList.BILLET, isChecked)
-              }
-            />
-            <Checkbox
-              label="Wire Transfer"
-              isChecked={typesCheckeds[typesList.WIRETRANFER]}
-              setChecked={(isChecked) =>
-                setTypesChecked(typesList.WIRETRANFER, isChecked)
-              }
-            />
-            <Checkbox
-              label="Paylivre Wallet"
-              isChecked={typesCheckeds[typesList.WALLET]}
-              setChecked={(isChecked) =>
-                setTypesChecked(typesList.WALLET, isChecked)
-              }
-            />
-          </>
-        )}
-      </ContainerCheckTypes>
+
+      <TypesTransaction
+        setType={setType}
+        operation={operation}
+        setCheckDataSelectedType={setCheckDataSelectedType}
+        showingAndSetPixKeyDefault={() => showingAndSetPixKeyDefault()}
+      />
+
       {typeFormSelected === "json" && (
         <>
           <ContainerHeight height={15} />
@@ -362,7 +318,6 @@ function Form({
           />
         </>
       )}
-
       {isDepositWallet && (
         <>
           <ContainerHeight height={15} />
@@ -385,36 +340,53 @@ function Form({
           </ContainerRow>
         </>
       )}
-
-      {typeFormSelected === "json" &&
-        operation === operation_withdraw &&
-        selected_type === "4" && (
-          <ContainerRow>
-            <ContainerFlexWidthCustom widthPercent={48}>
-              <ContainerHeight height={25} />
-              <RadioGroup
-                defaultCheckedValue={pix_key_type}
-                setChecked={(value) => setPix_key_type(value)}
-                labelGroup="Pix Key Type"
-                checkData={[
-                  { value: PixKeyTypes.document, label: "CPF/CNPJ" },
-                  { value: PixKeyTypes.phone, label: "Phone" },
-                  { value: PixKeyTypes.email, label: "Email" },
-                ]}
-              />
-            </ContainerFlexWidthCustom>
-
-            <ContainerFlexWidthCustom widthPercent={48}>
-              <ContainerHeight height={30} />
-              <Input
-                value={pix_key}
-                setValue={(value) => setPix_key(value)}
-                label="User Pix Key"
-              />
-            </ContainerFlexWidthCustom>
-          </ContainerRow>
+      {operation === operation_withdraw &&
+        selected_type === "4" &&
+        checkIsTypeWithdrawValid(type) && (
+          <>
+            <ContainerRow>
+              <ContainerFlexWidthCustom widthPercent={48}>
+                <ContainerHeight height={25} />
+                <RadioGroup
+                  defaultCheckedValue={pix_key_type}
+                  setChecked={(value) => handleSetPixKey(value)}
+                  labelGroup="Pix Key Type(OPTIONAL)"
+                  checkData={[
+                    { value: PixKeyTypes.document, label: "CPF/CNPJ" },
+                    { value: PixKeyTypes.phone, label: "Phone" },
+                    { value: PixKeyTypes.email, label: "Email" },
+                  ]}
+                />
+              </ContainerFlexWidthCustom>
+              <ContainerFlexWidthCustom widthPercent={48}>
+                <ContainerHeight height={30} />
+                <Input
+                  value={pix_key}
+                  setValue={(value) => setPix_key(value)}
+                  label="User Pix Key"
+                />
+              </ContainerFlexWidthCustom>
+            </ContainerRow>
+            <ContainerRow>
+              <span style={{ marginTop: "10px", marginBottom: "10px" }}>
+                Note: The Pix Key Type is optional, but if selected it is
+                necessary to fill in the User Pix Key Value.
+              </span>
+            </ContainerRow>
+            <ContainerRow>
+              <CustomButton
+                onClick={() => handleCleanPixKeyData()}
+                style={{
+                  width: "30%",
+                  textTransform: "none",
+                }}
+                variant="contained"
+              >
+                Clear Data Pix
+              </CustomButton>
+            </ContainerRow>
+          </>
         )}
-
       <ContainerHeight height={15} />
       <Input
         value={callback_url}
@@ -422,13 +394,11 @@ function Form({
         label="Callback URL:"
       />
       <ContainerHeight height={20} />
-
       <Input
         value={redirect_url}
         setValue={(value) => setRedirect_url(value)}
         label="Redirect URL: (OPTIONAL)"
       />
-
       <ContainerHeight height={15} />
       <FormLabelCustom>Environment:</FormLabelCustom>
       <Input
@@ -436,13 +406,15 @@ function Form({
         setValue={(value) => setBaseUrl(value)}
         label="Base URL:"
       />
-
       <ContainerHeight height={15} />
       <Input
         value={logo_url}
         setValue={(value) => setLogoUrl(value)}
         label="Logo URL: (OPTIONAL)"
       />
+      <FormLabel component="legend" style={{ margin: "0.6rem 0" }}>
+        v{packageJson.version}
+      </FormLabel>
     </Container>
   );
 }

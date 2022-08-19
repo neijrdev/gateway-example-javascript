@@ -1,6 +1,6 @@
 export const DataDefaultDev = {
   base_url: "https://dev.gateway.paylivre.com",
-  gateway_token: "UdXN2e33r3xlldm1UJSXGR5mslv9HeWP",
+  gateway_token: "NHsuzedl6omTPvoxc0p7gVXc7Xthhf6Y",
   merchant_id: "302",
   merchant_transaction_id: "",
   email: "user_gateway_test@tutanota.com",
@@ -11,6 +11,15 @@ export const DataDefaultPlayground = {
   base_url: "https://playground.gateway.paylivre.com",
   gateway_token: "0c85yWaiBWx1Mclvink7suWrHoEQnH8Q",
   merchant_id: "1508",
+  merchant_transaction_id: "",
+  email: "user_gateway_test@tutanota.com",
+  document_number: "61317581075",
+};
+
+export const DataDefaultStaging = {
+  base_url: "https://staging.gateway.paylivre.com",
+  gateway_token: "jUjoq0N8WRB95mHjmRqr0xh6lFJZy9Kn",
+  merchant_id: "25",
   merchant_transaction_id: "",
   email: "user_gateway_test@tutanota.com",
   document_number: "61317581075",

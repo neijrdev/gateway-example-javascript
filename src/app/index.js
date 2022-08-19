@@ -4,7 +4,11 @@ import { useLocation } from "react-router-dom";
 import Form from "../components/Form";
 import { getArgon2i } from "../services/argon2i";
 import { utf8_to_b64 } from "../utils/base64";
-import { DataDefaultDev, DataDefaultPlayground } from "../data/formDataDefault";
+import {
+  DataDefaultDev,
+  DataDefaultPlayground,
+  DataDefaultStaging,
+} from "../data/formDataDefault";
 import {
   Container,
   ContainerResult,
@@ -16,19 +20,40 @@ import { ContainerRow } from "../components/styles";
 
 import RequestJson from "../components/RequestJson";
 import UrlParametersList from "../components/UrlParametersList";
+import { operation_withdraw } from "../data/types";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
+}
+
+function getPathname() {
+  return window.location.pathname;
+}
+
+function getIsApiPath() {
+  const currentPathName = getPathname();
+  const apiPath = "gateway-example-javascript/api";
+  const isApiPath = currentPathName.toString().toLowerCase().includes(apiPath);
+  return isApiPath;
 }
 
 function App() {
   const query = useQuery();
   const isDev = query.get("dev") === "1";
   const isDevPlayground = query.get("playground") === "1";
+  const isDevLocalhost = query.get("localhost") === "1";
+  const isDevStaging = query.get("staging") === "1";
+  const devLocalhostPort = query.get("localhost_port");
+  const IsApiPath = getIsApiPath();
+
+  console.log(`IsApiPath: ${IsApiPath}`);
+
   const dataDefault = !isDev
     ? DataDefaultPlayground
     : isDevPlayground
     ? DataDefaultPlayground
+    : isDevStaging
+    ? DataDefaultStaging
     : DataDefaultDev;
 
   const [base_url, setBaseUrl] = React.useState(dataDefault.base_url);
@@ -42,7 +67,53 @@ function App() {
   const [typeFormSelected, setTypeFormSelected] = React.useState("url");
   const [urlGatewayParameters, setUrlGatewayParameters] = React.useState({});
 
+  function handleUrlGatewayParameters(OBJ_DataURL, STRING_Signature) {
+    if (!!OBJ_DataURL.pix_key && !!OBJ_DataURL.pix_key_type) {
+      setUrlGatewayParameters({
+        merchant_transaction_id: OBJ_DataURL.merchant_transaction_id,
+        merchant_id: OBJ_DataURL.merchant_id,
+        account_id: OBJ_DataURL.account_id,
+        amount: OBJ_DataURL.amount,
+        currency: OBJ_DataURL.currency,
+        operation: OBJ_DataURL.operation,
+        callback_url: OBJ_DataURL.callback_url,
+        redirect_url: OBJ_DataURL.redirect_url,
+        type: OBJ_DataURL.type,
+        auto_approve: OBJ_DataURL.auto_approve,
+        signature: STRING_Signature || "",
+        logoUrl: OBJ_DataURL.logo_url ? OBJ_DataURL.logo_url : "",
+        email: OBJ_DataURL.email ? OBJ_DataURL.email : "",
+        document_number: OBJ_DataURL.document_number
+          ? OBJ_DataURL.document_number
+          : "",
+        pix_key: OBJ_DataURL.pix_key,
+        pix_key_type: OBJ_DataURL.pix_key_type,
+      });
+    } else {
+      setUrlGatewayParameters({
+        merchant_transaction_id: OBJ_DataURL.merchant_transaction_id,
+        merchant_id: OBJ_DataURL.merchant_id,
+        account_id: OBJ_DataURL.account_id,
+        amount: OBJ_DataURL.amount,
+        currency: OBJ_DataURL.currency,
+        operation: OBJ_DataURL.operation,
+        callback_url: OBJ_DataURL.callback_url,
+        redirect_url: OBJ_DataURL.redirect_url,
+        type: OBJ_DataURL.type,
+        auto_approve: OBJ_DataURL.auto_approve,
+        signature: STRING_Signature || "",
+        logoUrl: OBJ_DataURL.logo_url ? OBJ_DataURL.logo_url : "",
+        email: OBJ_DataURL.email ? OBJ_DataURL.email : "",
+        document_number: OBJ_DataURL.document_number
+          ? OBJ_DataURL.document_number
+          : "",
+      });
+    }
+  }
+
   function getUrlGateway(DataURL, signature) {
+    handleUrlGatewayParameters(DataURL, signature);
+
     const merchant_transaction_id = `merchant_transaction_id=${DataURL.merchant_transaction_id}`;
     const merchant_id = `merchant_id=${DataURL.merchant_id}`;
     const account_id = `account_id=${DataURL.account_id}`;
@@ -59,32 +130,27 @@ function App() {
     const document_number = DataURL.document_number
       ? `&document_number=${DataURL.document_number}`
       : "";
+    const pix_key = DataURL.pix_key ? `&pix_key=${DataURL.pix_key}` : null;
+    const pix_key_type = DataURL.pix_key_type
+      ? `&pix_key_type=${DataURL.pix_key_type}`
+      : null;
+    let UrlGateway = null;
 
-    setUrlGatewayParameters({
-      merchant_transaction_id: DataURL.merchant_transaction_id,
-      merchant_id: DataURL.merchant_id,
-      account_id: DataURL.account_id,
-      amount: DataURL.amount,
-      currency: DataURL.currency,
-      operation: DataURL.operation,
-      callback_url: DataURL.callback_url,
-      redirect_url: DataURL.redirect_url,
-      mock_type: DataURL.type,
-      mock_auto_approve: DataURL.auto_approve,
-      signature: signature || "",
-      logoUrl: DataURL.logo_url ? DataURL.logo_url : "",
-      email: DataURL.email ? DataURL.email : "",
-      document_number: DataURL.document_number ? DataURL.document_number : "",
-    });
-
-    const UrlGateway = `${base_url}?${merchant_transaction_id}&${merchant_id}&${operation}${email}${document_number}&${amount}&${currency}&${mock_type}&${account_id}&${callback_url}&${redirect_url}&${mock_auto_approve}${Signature}${logoUrl}`;
+    if (
+      DataURL.operation === operation_withdraw &&
+      !!DataURL.pix_key &&
+      !!DataURL.pix_key_type
+    ) {
+      UrlGateway = `${base_url}?${merchant_transaction_id}&${merchant_id}&${operation}${email}${document_number}&${amount}&${currency}${pix_key_type}${pix_key}&${mock_type}&${account_id}&${callback_url}&${redirect_url}&${mock_auto_approve}${Signature}${logoUrl}`;
+    } else {
+      UrlGateway = `${base_url}?${merchant_transaction_id}&${merchant_id}&${operation}${email}${document_number}&${amount}&${currency}&${mock_type}&${account_id}&${callback_url}&${redirect_url}&${mock_auto_approve}${Signature}${logoUrl}`;
+    }
 
     return UrlGateway;
   }
 
   async function handleGenerateSignature() {
     const urlWithoutSignature = getUrlGateway(data);
-
     const valueToGetArgon2iHash = gateway_token + urlWithoutSignature;
     const argon2iHash = await getArgon2i(valueToGetArgon2iHash);
     const signature = utf8_to_b64(argon2iHash);
@@ -158,6 +224,9 @@ function App() {
                   urlGateway={urlGateway}
                   label="URL to Gateway Web:"
                   textButton="Open URL Gateway"
+                  baseUrl={dataDefault.base_url}
+                  isDevLocalhost={isDevLocalhost}
+                  devLocalhostPort={devLocalhostPort}
                 />
               )}
 
@@ -169,6 +238,9 @@ function App() {
                   url={url}
                   label="JSON Post Request:"
                   textButton="Copy JSON"
+                  baseUrl={dataDefault.base_url}
+                  isDevLocalhost={isDevLocalhost}
+                  devLocalhostPort={devLocalhostPort}
                 />
               )}
             </>
@@ -186,7 +258,12 @@ function App() {
           >
             {`Generate ${typeFormSelected.toUpperCase()}`}
           </CustomButton>
-          <UrlParametersList parameters={urlGatewayParameters} />
+          {urlGenerated && (
+            <UrlParametersList
+              baseUrl={base_url}
+              parameters={urlGatewayParameters}
+            />
+          )}
         </ContainerResult>
       </Container>
     </>

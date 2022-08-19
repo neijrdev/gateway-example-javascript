@@ -15,22 +15,23 @@
 // 1110 - 14 - Wallet, Ted, Boleto
 // 1111 - 15 - Wallet, Ted, Boleto, Pix (Todas)
 
-// 0 - TED
-// 1 - Boleto
-// 4 - PIX
-// 5 - Wallet
+// 1 - PIX
+// 2 - Boleto
+// 4 - TED
+// 8 - Wallet
+
 export const typesList = {
-  WIRETRANFER: 0,
-  BILLET: 1,
-  PIX: 4,
-  WALLET: 5,
+  PIX: 1,
+  BILLET: 2,
+  WIRETRANFER: 4,
+  WALLET: 8,
 };
 
 export function getTypeInteger(typesCheckeds) {
-  const binTypePix = typesCheckeds[4] ? "1" : "0";
-  const binTypeBillet = typesCheckeds[1] ? "1" : "0";
-  const binTypeWireTransfer = typesCheckeds[0] ? "1" : "0";
-  const binTypeWallet = typesCheckeds[5] ? "1" : "0";
+  const binTypePix = typesCheckeds[typesList.PIX] ? "1" : "0";
+  const binTypeBillet = typesCheckeds[typesList.BILLET] ? "1" : "0";
+  const binTypeWireTransfer = typesCheckeds[typesList.WIRETRANFER] ? "1" : "0";
+  const binTypeWallet = typesCheckeds[typesList.WALLET] ? "1" : "0";
   const typeInBinary =
     binTypeWallet + binTypeWireTransfer + binTypeBillet + binTypePix;
   const typeInInteger = parseInt(typeInBinary, 2);

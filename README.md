@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Page Example Form Gateway
 
-link: https://neijrdev.github.io/gateway-example-javascript
+link: https://paylivre.github.io/gateway-example-javascript
 
 ## Available Scripts
 
@@ -68,7 +68,6 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/a
 ### Deployment
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
 
 ### `yarn build` fails to minify
 
