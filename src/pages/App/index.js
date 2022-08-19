@@ -1,40 +1,42 @@
 /* eslint-disable no-unused-expressions */
 import React from "react";
 import { useLocation } from "react-router-dom";
-import Form from "../components/Form";
-import { getArgon2i } from "../services/argon2i";
-import { utf8_to_b64 } from "../utils/base64";
+import Form from "./components/Form";
+import { getArgon2i } from "../../services/argon2i";
+import { utf8_to_b64 } from "../../utils/base64";
 import {
   DataDefaultDev,
   DataDefaultPlayground,
   DataDefaultStaging,
-} from "../data/formDataDefault";
+} from "../../data/formDataDefault";
 import {
   Container,
   ContainerResult,
   CustomButton,
   ContainerFlexWidthCustom,
 } from "./styles";
+import { ContainerRow } from "../../components/styles";
+import RequestJson from "../../components/RequestJson";
+import UrlParametersList from "../../components/UrlParametersList";
+import { operation_withdraw } from "../../data/types";
 
-import { ContainerRow } from "../components/styles";
-
-import RequestJson from "../components/RequestJson";
-import UrlParametersList from "../components/UrlParametersList";
-import { operation_withdraw } from "../data/types";
+const requiredFields = [
+  "merchant_id",
+  "operation",
+  "merchant_transaction_id",
+  "amount",
+  "currency",
+  "mock_type",
+  "account_id",
+  "mock_auto_approve",
+  "callback_url",
+  "type",
+  "auto_approve",
+  "signature",
+];
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
-}
-
-function getPathname() {
-  return window.location.pathname;
-}
-
-function getIsApiPath() {
-  const currentPathName = getPathname();
-  const apiPath = "gateway-example-javascript/api";
-  const isApiPath = currentPathName.toString().toLowerCase().includes(apiPath);
-  return isApiPath;
 }
 
 function App() {
@@ -44,9 +46,6 @@ function App() {
   const isDevLocalhost = query.get("localhost") === "1";
   const isDevStaging = query.get("staging") === "1";
   const devLocalhostPort = query.get("localhost_port");
-  const IsApiPath = getIsApiPath();
-
-  console.log(`IsApiPath: ${IsApiPath}`);
 
   const dataDefault = !isDev
     ? DataDefaultPlayground
@@ -262,6 +261,7 @@ function App() {
             <UrlParametersList
               baseUrl={base_url}
               parameters={urlGatewayParameters}
+              requiredFields={requiredFields}
             />
           )}
         </ContainerResult>

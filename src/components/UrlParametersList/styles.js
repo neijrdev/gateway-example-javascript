@@ -64,10 +64,10 @@ export const AlertContainer = styled.div`
   flex-wrap: wrap;
   width: auto;
   height: auto;
-  padding: 20px;
+  padding: 5px 20px;
   border-radius: 5px;
   flex-direction: column;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   @media (max-width: 930px) {
     width: 88%;
     padding: 20px;

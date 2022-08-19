@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Button from "@mui/material/Button";
 import FormLabel from "@mui/material/FormLabel";
-import { Typography } from "@mui/material";
+import { Breadcrumbs, Link, Typography } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import {
   Container,
   FormLabelCustom,
@@ -11,18 +12,53 @@ import {
 
 import { ContainerRow } from "../styles";
 
-import Input from "../Input";
-import RadioGroup from "../RadioGroup";
-import { PixKeyTypes } from "../../utils/pixKeyTypes";
+import RadioGroup from "../../../../components/RadioGroup";
+import { PixKeyTypes } from "../../../../utils/pixKeyTypes";
+import { typesList } from "../../../../utils/typesUtils";
+import { getRandomMerchantTransactionId } from "../../../../utils/generatePropsRandom";
+import { useForceReloadData } from "../../../../contexts/forceReloadData";
+import Input from "../../../../components/Input";
+import InputSwitch from "../../../../components/Switch";
+import packageJson from "../../../../../package.json";
+import { operation_deposit, operation_withdraw } from "../../../../data/types";
 
-import { getRandomMerchantTransactionId } from "../../utils/generatePropsRandom";
+const typesAvailableDefault = [
+  {
+    value: typesList.PIX.toString(),
+    label: "Pix",
+  },
+  {
+    value: typesList.WALLET.toString(),
+    label: "Paylivre Wallet",
+  },
+];
 
-import { useForceReloadData } from "../../contexts/forceReloadData";
-import InputSwitch from "../Switch";
-import packageJson from "../../../package.json";
-import { CustomButton } from "../../app/styles";
-import { operation_deposit, operation_withdraw } from "../../data/types";
-import TypesTransaction from "./components/TypesTransaction";
+function getTypesAvailables(Operation) {
+  if (Operation === operation_withdraw) {
+    return typesAvailableDefault;
+  }
+  return [
+    ...typesAvailableDefault,
+    {
+      value: typesList.BILLET.toString(),
+      label: "Billet",
+    },
+    {
+      value: typesList.WIRETRANFER.toString(),
+      label: "Wire Transfer",
+    },
+  ];
+}
+
+function getOperationsAvailable(isDev) {
+  if (isDev === true) {
+    return [
+      { value: "5", label: "Withdraw" },
+      { value: "0", label: "Deposit" },
+    ];
+  }
+  return [{ value: "5", label: "Withdraw" }];
+}
 
 function Form({
   setData,
@@ -31,11 +67,9 @@ function Form({
   setUrlGenerated,
   base_url,
   setBaseUrl,
-  typeFormSelected,
   dataDefault,
+  isDev,
 }) {
-  const logo_url_example =
-    "https://github.com/paylivre/gateway-example-react-js/blob/master/assets/logo_jackpot_new.png?raw=true";
   const [merchant_id, setMerchantId] = useState(dataDefault.merchant_id);
   const [merchant_transaction_id, setMerchantTransactionId] = useState(
     getRandomMerchantTransactionId()
@@ -46,22 +80,16 @@ function Form({
   );
   const [account_id, setAccountId] = useState("123654asd");
   const [currency, setCurrency] = useState("BRL");
-  const [operation, setOperation] = useState(operation_deposit);
+  const [operation, setOperation] = useState(operation_withdraw);
   const [amount, setAmount] = useState("500");
   const [callback_url, setcCallback_url] = useState(
     "https://api.dev.paylivre.com/dev/v2/callback"
   );
-  const [redirect_url, setRedirect_url] = useState(
-    "https://www.merchant_to_you.com"
-  );
   const [type, setType] = useState("1");
-  const [selected_type, setSelected_type] = useState("1");
-  const [checkDataSelectedType, setCheckDataSelectedType] = useState([]);
-  const [pix_key_type, setPix_key_type] = useState("");
+  const [pix_key_type, setPix_key_type] = useState(PixKeyTypes.document);
   const [pix_key, setPix_key] = useState("");
   const [login_email, setLoginEmail] = useState(dataDefault.email);
   const [password, setPassword] = useState("123123123");
-  const [logo_url, setLogoUrl] = useState(logo_url_example);
   const [auto_approve, setAuto_approve] = useState(true);
   const { disable, setDisable } = useForceReloadData();
 
@@ -79,55 +107,109 @@ function Form({
     }
   }
 
-  function handleCleanPixKeyData() {
-    setPix_key_type("");
-    setPix_key("");
-  }
-
-  function showingAndSetPixKeyDefault() {
-    if (!checkIsTypeWithdrawValid(type)) {
-      handleCleanPixKeyData();
-    }
+  function setOperationAndSetTypeDefault(Operation) {
+    setOperation(Operation);
+    setType(typesList.PIX.toString());
   }
 
   const isDepositWallet =
-    typeFormSelected === "json" &&
-    operation === operation_deposit &&
-    selected_type === "5";
+    operation === operation_deposit && type === typesList.WALLET.toString();
+
+  function handleSetPixKey(string_value) {
+    if (string_value === PixKeyTypes.document) {
+      setPix_key_type(PixKeyTypes.document);
+      setPix_key(document_number);
+    }
+
+    if (string_value === PixKeyTypes.email) {
+      setPix_key_type(PixKeyTypes.email);
+      setPix_key(email);
+    }
+
+    if (string_value === PixKeyTypes.phone) {
+      setPix_key_type(PixKeyTypes.phone);
+      setPix_key("");
+    }
+  }
+
+  const setDefaultData = useCallback((DataDefault) => {
+    setOperation(operation_withdraw);
+    setMerchantId(DataDefault.merchant_id);
+    setGateway_token(DataDefault.gateway_token);
+    setBaseUrl(DataDefault.base_url);
+  }, []);
+
+  useEffect(() => {
+    setDefaultData(dataDefault);
+  }, [useLocation().search, dataDefault]);
+
+  useEffect(() => {
+    if (operation === operation_withdraw) {
+      handleSetPixKey(PixKeyTypes.document);
+    }
+  }, [operation, type]);
+
+  useEffect(() => {
+    if (type === typesList.PIX.toString()) {
+      handleSetPixKey(PixKeyTypes.document);
+    }
+  }, [type]);
+
+  function getNumberIfNotEmpty(valueString) {
+    return valueString.toString().length > 0 ? Number(valueString) : "";
+  }
 
   useEffect(() => {
     // Toda vez que alterar algum dado no data
     setUrlGenerated(false);
     setDisable(false);
 
-    const isWithdraw = operation === operation_withdraw;
+    const isWithdrawPix =
+      operation === operation_withdraw && type === typesList.PIX.toString();
 
     function getType() {
       return type;
     }
 
-    setData((oldData) => {
-      return {
+    function getNewData(oldData) {
+      const newData = {
         ...oldData,
         account_id,
-        amount,
-        auto_approve: auto_approve === true ? "1" : "0",
+        amount: getNumberIfNotEmpty(amount),
+        auto_approve: auto_approve === true ? 1 : 0,
         callback_url,
         currency,
         document_number,
         email,
-        merchant_id,
-        operation,
+        merchant_id: getNumberIfNotEmpty(merchant_id),
+        operation: getNumberIfNotEmpty(operation),
         merchant_transaction_id,
-        redirect_url,
-        selected_type: type === "0" ? "" : selected_type,
-        type: getType(),
+        type: getNumberIfNotEmpty(getType()),
         login_email: isDepositWallet ? login_email : "",
         password: isDepositWallet ? password : "",
-        pix_key_type: isWithdraw ? pix_key_type : "",
-        pix_key: isWithdraw ? pix_key : "",
-        logo_url,
       };
+
+      if (isWithdrawPix) {
+        newData.pix_key_type = isWithdrawPix ? pix_key_type : "";
+        newData.pix_key = isWithdrawPix ? pix_key : "";
+      } else {
+        delete newData.pix_key_type;
+        delete newData.pix_key;
+      }
+
+      if (isDepositWallet) {
+        newData.login_email = isDepositWallet ? login_email : "";
+        newData.password = isDepositWallet ? password : "";
+      } else {
+        delete newData.login_email;
+        delete newData.password;
+      }
+
+      return newData;
+    }
+
+    setData((oldData) => {
+      return getNewData(oldData);
     });
   }, [
     setData,
@@ -141,15 +223,14 @@ function Form({
     operation,
     amount,
     callback_url,
-    redirect_url,
     setUrlGenerated,
     gateway_token,
     base_url,
     type,
-    selected_type,
     pix_key_type,
     pix_key,
-    logo_url,
+    password,
+    login_email,
   ]);
 
   function handleReloadRandomFormatData() {
@@ -169,27 +250,31 @@ function Form({
     );
   }
 
-  function handleSetPixKey(string_value) {
-    if (string_value === PixKeyTypes.document) {
-      setPix_key_type(PixKeyTypes.document);
-      setPix_key(document_number);
-    }
-
-    if (string_value === PixKeyTypes.email) {
-      setPix_key_type(PixKeyTypes.email);
-      setPix_key(email);
-    }
-
-    if (string_value === PixKeyTypes.phone) {
-      setPix_key_type(PixKeyTypes.phone);
-      setPix_key("");
-    }
-  }
-
   return (
     <Container>
       <ContainerRow
-        style={{ marginBottom: 20, height: 50, alignItems: "center" }}
+        style={{ marginBottom: 0, height: 50, alignItems: "center" }}
+      >
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link href="/gateway-example-javascript/#/">Url Gateway</Link>
+          <Typography color="text.primary">Withdraw API</Typography>
+        </Breadcrumbs>
+      </ContainerRow>
+
+      <FormLabelCustom>Environment:</FormLabelCustom>
+      <Input
+        value={base_url}
+        setValue={(value) => setBaseUrl(value)}
+        label="Base URL:"
+      />
+
+      <ContainerRow
+        style={{
+          marginBottom: 20,
+          marginTop: 10,
+          height: 50,
+          alignItems: "center",
+        }}
       >
         <ContainerFlexWidthCustom widthPercent={48}>
           <FormLabelCustom style={{ margin: 0 }}>
@@ -216,6 +301,7 @@ function Form({
             value={merchant_id}
             setValue={(value) => setMerchantId(value)}
             label="Merchant ID:"
+            type="number"
           />
           <ContainerHeight height={15} />
         </ContainerFlexWidthCustom>
@@ -264,6 +350,7 @@ function Form({
             value={amount}
             setValue={(value) => setAmount(value)}
             label="Amount:"
+            type="number"
           />
         </ContainerFlexWidthCustom>
         <ContainerHeight height={15} />
@@ -290,34 +377,20 @@ function Form({
       <ContainerHeight height={15} />
       <RadioGroup
         defaultCheckedValue={operation}
-        setChecked={(value) => setOperation(value)}
+        setChecked={(value) => setOperationAndSetTypeDefault(value)}
         labelGroup="Operation"
-        checkData={[
-          { value: "0", label: "Deposit" },
-          { value: "5", label: "Withdraw" },
-        ]}
+        checkData={getOperationsAvailable(isDev)}
       />
       <ContainerHeight height={15} />
-      <FormLabel component="legend">Type passed by merchant</FormLabel>
 
-      <TypesTransaction
-        setType={setType}
-        operation={operation}
-        setCheckDataSelectedType={setCheckDataSelectedType}
-        showingAndSetPixKeyDefault={() => showingAndSetPixKeyDefault()}
+      <ContainerHeight height={15} />
+      <RadioGroup
+        defaultCheckedValue={type}
+        setChecked={(value) => setType(value)}
+        labelGroup="Type passed by merchant"
+        checkData={getTypesAvailables(operation)}
       />
 
-      {typeFormSelected === "json" && (
-        <>
-          <ContainerHeight height={15} />
-          <RadioGroup
-            defaultCheckedValue={selected_type}
-            setChecked={(value) => setSelected_type(value)}
-            labelGroup="User selected type"
-            checkData={checkDataSelectedType}
-          />
-        </>
-      )}
       {isDepositWallet && (
         <>
           <ContainerHeight height={15} />
@@ -341,7 +414,7 @@ function Form({
         </>
       )}
       {operation === operation_withdraw &&
-        selected_type === "4" &&
+        type === typesList.PIX.toString() &&
         checkIsTypeWithdrawValid(type) && (
           <>
             <ContainerRow>
@@ -367,24 +440,6 @@ function Form({
                 />
               </ContainerFlexWidthCustom>
             </ContainerRow>
-            <ContainerRow>
-              <span style={{ marginTop: "10px", marginBottom: "10px" }}>
-                Note: The Pix Key Type is optional, but if selected it is
-                necessary to fill in the User Pix Key Value.
-              </span>
-            </ContainerRow>
-            <ContainerRow>
-              <CustomButton
-                onClick={() => handleCleanPixKeyData()}
-                style={{
-                  width: "30%",
-                  textTransform: "none",
-                }}
-                variant="contained"
-              >
-                Clear Data Pix
-              </CustomButton>
-            </ContainerRow>
           </>
         )}
       <ContainerHeight height={15} />
@@ -392,25 +447,6 @@ function Form({
         value={callback_url}
         setValue={(value) => setcCallback_url(value)}
         label="Callback URL:"
-      />
-      <ContainerHeight height={20} />
-      <Input
-        value={redirect_url}
-        setValue={(value) => setRedirect_url(value)}
-        label="Redirect URL: (OPTIONAL)"
-      />
-      <ContainerHeight height={15} />
-      <FormLabelCustom>Environment:</FormLabelCustom>
-      <Input
-        value={base_url}
-        setValue={(value) => setBaseUrl(value)}
-        label="Base URL:"
-      />
-      <ContainerHeight height={15} />
-      <Input
-        value={logo_url}
-        setValue={(value) => setLogoUrl(value)}
-        label="Logo URL: (OPTIONAL)"
       />
       <FormLabel component="legend" style={{ margin: "0.6rem 0" }}>
         v{packageJson.version}

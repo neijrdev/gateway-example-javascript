@@ -5,6 +5,7 @@ export const DataDefaultDev = {
   merchant_transaction_id: "",
   email: "user_gateway_test@tutanota.com",
   document_number: "61317581075",
+  api_base_url: "https://api.dev.paylivre.com/api/v2",
 };
 
 export const DataDefaultPlayground = {
@@ -14,6 +15,7 @@ export const DataDefaultPlayground = {
   merchant_transaction_id: "",
   email: "user_gateway_test@tutanota.com",
   document_number: "61317581075",
+  api_base_url: "https://api.playground.paylivre.com/api/v2",
 };
 
 export const DataDefaultStaging = {
@@ -23,4 +25,5 @@ export const DataDefaultStaging = {
   merchant_transaction_id: "",
   email: "user_gateway_test@tutanota.com",
   document_number: "61317581075",
+  api_base_url: "https://api.staging.paylivre.com/api/v2",
 };

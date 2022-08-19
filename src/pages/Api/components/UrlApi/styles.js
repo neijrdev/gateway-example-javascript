@@ -10,7 +10,7 @@ export const Container = styled.div`
   height: auto;
   min-height: 100px;
   justify-content: center;
-  padding: 0 20px 10px 20px;
+  padding: 0 20px 10px;
   border-radius: 5px;
   flex-direction: column;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -18,6 +18,7 @@ export const Container = styled.div`
     width: 88%;
     padding: 20px;
   }
+  margin-bottom: 20px;
 `;
 
 export const PColor = styled.p`
@@ -35,6 +36,15 @@ export const FormLabelCustom = styled.h2`
   font-size: 18px;
   color: white;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+`;
+
+export const FlagPost = styled.div`
+  display: flex;
+  background: #ffdd3c;
+  padding: 5px;
+  width: 60px;
+  justify-content: center;
+  margin-right: 10px;
 `;
 
 export const ContainerFlexWidthCustom = styled(ContainerFlexWidth)`

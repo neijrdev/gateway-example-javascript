@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Button from "@mui/material/Button";
-import { ContainerFlexWidth } from "../components/styles";
+import { ContainerFlexWidth } from "../../components/styles";
 
 export const Container = styled.div`
   display: flex;

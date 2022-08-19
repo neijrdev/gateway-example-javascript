@@ -11,20 +11,7 @@ import {
   SectionTitle,
 } from "./styles";
 
-const requiredFields = [
-  "merchant_id",
-  "operation",
-  "merchant_transaction_id",
-  "amount",
-  "currency",
-  "mock_type",
-  "account_id",
-  "mock_auto_approve",
-  "callback_url",
-];
-
-const UrlParametersList = (props) => {
-  const { parameters, baseUrl } = props;
+const UrlParametersList = ({ parameters, baseUrl, requiredFields }) => {
   const validationArray = [];
 
   Object.entries(parameters).forEach((param) =>
@@ -38,7 +25,7 @@ const UrlParametersList = (props) => {
     const isEmpty = param[1].length === 0;
     return (
       <ListItem key={index} isEmpty={isEmpty}>
-        {isRequired && "*"}
+        {isRequired && "* "}
         {`${param[0]} = ${param[1]}`}
       </ListItem>
     );
@@ -50,7 +37,7 @@ const UrlParametersList = (props) => {
         {validationArray.includes(true) && (
           <Alert>All mandatory fields must be filled!</Alert>
         )}
-        <Typography variant="p" component="p">
+        <Typography style={{ marginTop: 10 }} component="p">
           Legend:
         </Typography>
         <Legend>* - Mandatory field</Legend>
@@ -60,6 +47,7 @@ const UrlParametersList = (props) => {
 
   return (
     <Container>
+      {validationArray.includes(true) && renderAlert()}
       <ContainerFlexWidth>
         <SectionTitle>Url Parameters</SectionTitle>
         <ListContainer>
@@ -70,7 +58,7 @@ const UrlParametersList = (props) => {
           )}
         </ListContainer>
       </ContainerFlexWidth>
-      {renderAlert()}
+      {!validationArray.includes(true) && renderAlert()}
     </Container>
   );
 };

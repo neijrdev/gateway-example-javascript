@@ -78,9 +78,7 @@ function RequestJson({
 
   return (
     <Container {...rest}>
-      <ContainerRow
-        style={{ alignItems: "center", paddingTop: 10, marginBottom: 10 }}
-      >
+      <ContainerRow style={{ alignItems: "center", paddingTop: 10 }}>
         <ContainerFlexWidthCustom widthPercent={50}>
           <FormLabelCustom>{label}</FormLabelCustom>
         </ContainerFlexWidthCustom>

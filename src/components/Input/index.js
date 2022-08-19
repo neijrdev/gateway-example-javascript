@@ -1,7 +1,7 @@
 import React from "react";
 import { InputCustom } from "./styles";
 
-function Input({ label, value, setValue }) {
+function Input({ label, value, setValue, ...rest }) {
   return (
     <InputCustom
       value={value}
@@ -11,6 +11,7 @@ function Input({ label, value, setValue }) {
       size="small"
       variant="outlined"
       onChange={(e) => setValue(e.target.value)}
+      {...rest}
     />
   );
 }

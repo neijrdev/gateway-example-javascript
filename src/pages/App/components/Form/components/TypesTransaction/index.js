@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { typesList, getTypeInteger } from "../../../../utils/typesUtils";
-import { operation_deposit, operation_withdraw } from "../../../../data/types";
-import Checkbox from "../../../CheckBox";
+import { typesList, getTypeInteger } from "../../../../../../utils/typesUtils";
+import {
+  operation_deposit,
+  operation_withdraw,
+} from "../../../../../../data/types";
+import Checkbox from "../../../../../../components/CheckBox";
 
 import { ContainerCheckTypes } from "./styles";
 
